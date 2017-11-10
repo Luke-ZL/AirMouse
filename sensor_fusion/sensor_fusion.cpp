@@ -2,14 +2,33 @@
 #include <Wire.h>
 #include "sensor_fusion.h"
 
+/** Reads a register over I2C from the IMU.
+ *
+ * reg: register address to read from.
+ * buf: array to store the register data in.
+ * len: length of buf.
+ */
 void readReg(uint8_t reg, uint8_t *buf, size_t len)
 {
     // TODO: Implement
+    Wire.requestFrom(len, reg);
+    while(Wire.available() && len--)
+        *buf++ = Wire.read();
+
 }
 
+/** Writes to a register over I2C from the IMU.
+ *
+ * reg: register address to write to.
+ * buf: array containing the data to write.
+ * len: length of buf.
+ */
 void writeReg(uint8_t reg, uint8_t *buf, size_t len)
 {
     // TODO: Implement
+    Wire.beginTransmission(reg);
+    Wire.write(buf,len)
+    Wire.endTransmission();
 }
 
 float vector_normalize(struct vector *raw, struct vector *unit)
