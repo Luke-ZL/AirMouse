@@ -25,10 +25,19 @@ int16_t a_x, a_y, a_z;
 int16_t g_x, g_y, g_z;
 int16_t g;
 int16_t avg_a_x = 0, avg_a_y = 0, avg_a_z = 0;
-int16_t avg_g_x = 0, avg_g_y = 0, avg_g_z = 0;
+int32_t avg_g_x = 0, avg_g_y = 0, avg_g_z = 0;
 int i = 0;
+float angle, angle_of_rot;
+unsigned long currTime, prevTime;
+long dt;
 vector accel;
 vector norm_accel;
+vector gyro;
+vector norm_gyro;
+vector trueUp;
+
+quaternion rotate;
+
 void setup() {
   Serial.begin(115200);
 
@@ -51,58 +60,68 @@ void setup() {
   writeReg(CONFIG, &buf, 1);
   //Serial.println(buf);
 
-  //find_bias(100);
+  find_bias(100);
+  trueUp.x = 0;
+  trueUp.y = 0;
+  trueUp.z = 1;
+  prevTime = millis();
 }
-
 
 void loop() {
   readReg(INT_STATUS, &buf, 1);
-  //Serial.println("Read");
-  delay(10);
   if ((buf & B00000001) == 1)
   {
-    //Serial.println("Data Ready");
     readAccel();
     readGyro();
+
+    currTime = millis();
+    dt = (currTime - prevTime);
+    prevTime = currTime;
+
     a_x -= avg_a_x;
     a_y -= avg_a_y;
     a_z -= avg_a_z;
-    
+
     accel.x = a_x;
     accel.y = a_y;
     accel.z = a_z;
-    vector_normalize(&accel, &norm_accel);
-    Serial.print(norm_accel.x);
-    Serial.print(" ");
-    Serial.print(norm_accel.y);
-    Serial.print(" ");
-    Serial.println(norm_accel.z);
-    Serial.print(" ");
 
     g_x -= avg_g_x;
     g_y -= avg_g_y;
     g_z -= avg_g_z;
 
-//    Serial.println(a_x);
-//    Serial.println(a_y);
-//    Serial.println(a_z);
-//    Serial.println(g_x);
-//    Serial.println(g_y);
-//    Serial.println(g_z);
+    gyro.x = g_x;
+    gyro.y = g_y;
+    gyro.z = g_z;
 
+    vector_normalize(&accel, &norm_accel);
+    angle = vector_normalize(&gyro, &norm_gyro);
+    Serial.println(angle, 15);
+    angle_of_rot = dt * (-1) * PI * angle / 180.0 / 16.4 / 1000.0;
+    quaternion_create(&norm_gyro, angle_of_rot, &rotate);
+    quaternion_rotate(&trueUp, &rotate, &trueUp);
+
+    Serial.print(norm_accel.x);
+    Serial.print(" ");
+    Serial.print(norm_accel.y);
+    Serial.print(" ");
+    Serial.print(norm_accel.z);
+    Serial.print(" ");
+    Serial.print(trueUp.x);
+    Serial.print(" ");
+    Serial.print(trueUp.y);
+    Serial.print(" ");
+    Serial.println(trueUp.z);
+    Serial.print(" ");
   }
 }
 
 void find_bias(int i)
 {
   while (1) {
-    //Serial.println("Reading");
     readReg(INT_STATUS, &buf, 1);
-    delay(10);
     if ((buf & B00000001) == 1)
     {
-      //Serial.println("Data Ready");
-
       readAccel();
       readGyro();
 
@@ -120,19 +139,11 @@ void find_bias(int i)
       avg_a_x /= 100;
       avg_a_y /= 100;
       avg_a_z /= 100;
-      avg_a_z += (16384/100);
+      avg_a_z += (16384 / 100);
 
       avg_g_x /= 100;
       avg_g_y /= 100;
       avg_g_z /= 100;
-
-//      Serial.println("Done");
-//      Serial.println(avg_a_x);
-//      Serial.println(avg_a_y);
-//      Serial.println(avg_a_z);
-//      Serial.println(avg_g_x);
-//      Serial.println(avg_g_y);
-//      Serial.println(avg_g_z);
       break;
     }
   }
