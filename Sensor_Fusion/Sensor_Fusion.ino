@@ -27,6 +27,11 @@ int16_t g;
 int16_t avg_a_x = 0, avg_a_y = 0, avg_a_z = 0;
 int16_t avg_g_x = 0, avg_g_y = 0, avg_g_z = 0;
 int i = 0;
+
+vector raw_acc,unit_acc,raw_gyro,unit_gyro;
+quarternion result;
+float mag;
+
 void setup() {
   Serial.begin(9600);
 
@@ -54,7 +59,7 @@ void setup() {
 
 
 void loop() {
-  readReg(INT_STATUS, &buf, 1);
+  /* readReg(INT_STATUS, &buf, 1);
   delay(10);
   if ((buf & B00000001) == 1)
   {
@@ -74,8 +79,39 @@ void loop() {
     Serial.println(a_z);
     Serial.println(g_x);
     Serial.println(g_y);
-    Serial.println(g_z);
-
+    Serial.println(g_z); */
+    
+   readReg(INT_STATUS, &buf, 1);
+  delay(10);
+  if ((buf & B00000001) == 1)
+  {
+    readAccel();
+    Serial.println("Ready Acc");
+    raw_acc.x = a_x-avg_a_x;
+    raw_acc.y = a_y-avg_a_y;
+    raw_acc.z = a_z-avg_a_z;
+    vector_normalize(&raw_acc,&unit_acc);
+    Serial.print(unit_acc.x);
+    Serial.print(' ');
+    Serial.print(unit_acc.y);
+    Serial.print(' ');
+    Serial.println(unit_acc.z);
+  
+    delay(10);
+    readGyro();
+    Serial.println("Ready gyro");
+    raw_gyro.x = g_x-avg_g_x;
+    raw_gyro.y = g_y-avg_g_y;
+    raw_gyro.z = g_z-avg_g_z;
+    mag = vector_normalize(&raw_gyro,&unit_gyro);
+    quaternion_create (&unit_gyro, mag/100, &result); 
+    Serial.print(unit_gyro.x);
+    Serial.print(' ');
+    Serial.print(unit_gyro.y);
+    Serial.print(' ');
+    Serial.println(unit_gyro.z);
+  }
+    
   }
 }
 
