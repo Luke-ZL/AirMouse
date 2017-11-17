@@ -21,7 +21,7 @@ void readReg(uint8_t reg, uint8_t *buf, size_t len)
     Wire.endTransmission();
 
 }
-
+sdjfshsdkj
 void readReg16(uint8_t reg, uint16_t *buf, size_t len)
 {
     // TODO: Implement
