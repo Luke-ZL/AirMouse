@@ -11,9 +11,28 @@
 void readReg(uint8_t reg, uint8_t *buf, size_t len)
 {
     // TODO: Implement
-    Wire.requestFrom(len, reg);
-    while(Wire.available() && len--)
+
+    Wire.beginTransmission(0b1101000);
+    Wire.write(reg);
+    Wire.endTransmission(false);
+    Wire.requestFrom(0b1101000, len);
+    while(len--)
         *buf++ = Wire.read();
+    Wire.endTransmission();
+
+}
+
+void readReg16(uint8_t reg, uint16_t *buf, size_t len)
+{
+    // TODO: Implement
+
+    Wire.beginTransmission(0b1101000);
+    Wire.write(reg);
+    Wire.endTransmission(false);
+    Wire.requestFrom(0b1101000, len);
+    while(len--)
+        *buf++ = Wire.read();
+    Wire.endTransmission();
 
 }
 
@@ -26,8 +45,9 @@ void readReg(uint8_t reg, uint8_t *buf, size_t len)
 void writeReg(uint8_t reg, uint8_t *buf, size_t len)
 {
     // TODO: Implement
-    Wire.beginTransmission(reg);
-    Wire.write(buf,len)
+    Wire.beginTransmission(0b1101000);
+    Wire.write(reg);
+    Wire.write(buf,len);
     Wire.endTransmission();
 }
 

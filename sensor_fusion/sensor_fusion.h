@@ -7,7 +7,7 @@
  * len: length of buf.
  */
 void readReg(uint8_t reg, uint8_t *buf, size_t len);
-
+void readReg16(uint8_t reg, uint16_t *buf, size_t len);
 /** Writes to a register over I2C from the IMU.
  *
  * reg: register address to write to.
